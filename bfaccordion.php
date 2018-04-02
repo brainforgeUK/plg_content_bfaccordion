@@ -18,8 +18,8 @@ class plgContentBfaccordion extends JPlugin
 	const ACCORDIONSLIDER = '{bfaccordion-slider';
 	const ACCORDIONEND = '{bfaccordion-end}';
 
-	static $accordionsetid = 0;
 	static $accordionid = 0;
+	static $sliderid = 0;
 
 	public function onContentPrepare($context, &$article, &$params, $limitstart)
 	{
@@ -57,12 +57,33 @@ class plgContentBfaccordion extends JPlugin
 			$sliders[$accordionLabel] = trim(substr($accordionText, $sliderLabelEnd+1));
 		}
 
-		$thisAccordionName = 'bfaccordion-' . (self::$accordionsetid++);
 		$accordionOptions = array();
 		if (count($sliders) == 1)
 		{
-			$accordionOptions['active'] = 'bfaccordion-slider-' . self::$accordionid;
+			$active = 'bfaccordion-slider-' . self::$sliderid;
 		}
+		else {
+			$active = '';
+			$accordionSliderActive = JFactory::getApplication()->input->getVar('accordionslideractive');
+			if (!empty($accordionSliderActive))
+			{
+				if (@sscanf($accordionSliderActive, '%d,%d', $accordionid, $sliderid) == 2)
+				{
+					if ($accordionid == self::$accordionid &&
+						$sliderid >= 0 && $sliderid < count($sliders))
+					{
+						$active = 'bfaccordion-slider-' . (self::$sliderid + $sliderid);
+					}
+				}
+			}
+		}
+		if (!empty($active))
+		{
+			$accordionOptions['active'] = $active;
+		}
+		$accordionOptions['toggle'] = true;
+		$thisAccordionName = 'bfaccordion-' . (self::$accordionid++);
+
 		$accordion = JHtml::_('bootstrap.startAccordion', $thisAccordionName, $accordionOptions);
 		foreach($sliders as $label=>$content)
 		{
