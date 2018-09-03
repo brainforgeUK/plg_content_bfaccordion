@@ -31,11 +31,6 @@ class plgContentBfaccordion extends JPlugin
 		$accordionEnd = strpos($article->text, self::ACCORDIONEND, $accordionStart);
 		if ($accordionEnd === false) return;
 
-		$openEnd = strpos(substr($article->text, $accordionStart, $accordionEnd), '}');
-		if ($openEnd === false) return;
-		$startLen = strlen(self::ACCORDIONSTART);
-		$accordionBFOptions = trim(substr($article->text, $accordionStart+$startLen, $openEnd-$startLen));
-
 		$accordionText = substr($article->text, $accordionStart, $accordionEnd - $accordionStart);
 		if (preg_match('@' . self::ACCORDIONSLIDER . '[^}]*}</p>@', $accordionText)) return;
 		$accordionEnd += strlen(self::ACCORDIONEND);
@@ -102,15 +97,24 @@ class plgContentBfaccordion extends JPlugin
 			$accordion .
 			substr($article->text, $accordionEnd);
 
-		if ($accordionBFOptions != 'height:default;')
+		$doc = JFactory::getDocument();
+		if($this->params->get('cssmode'))
 		{
-			// The accordion area getting set to height of the titles
-			// So need to make sure it gets changed back to auto
-			JFactory::getDocument()->addScriptDeclaration('
-jQuery(function($){
-	$("#' . $thisAccordionName . '").css("height", "");
-});');
+			$css = trim($this->params->get('customcss'));
+			if (!empty($css))
+			{
+				$doc->addStyleDeclaration($css);
+			}
 		}
+		if($this->params->get('jsmode'))
+		{
+			$js = trim($this->params->get('customjs'));
+			if (!empty($js))
+			{
+				$doc->addScriptDeclaration($js);
+			}
+		}
+
 		return;
 	}
 }
