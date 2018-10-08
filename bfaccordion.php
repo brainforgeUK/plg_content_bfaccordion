@@ -18,8 +18,11 @@ class plgContentBfaccordion extends JPlugin
 	const ACCORDIONSLIDER = '{bfaccordion-slider';
 	const ACCORDIONEND = '{bfaccordion-end}';
 
+	const ACCORDIONPREFIX = 'bfaccordion-';
+
 	static $accordionid = 0;
 	static $sliderid = 0;
+	static $sliderNameList = null;
 
 	public function onContentPrepare($context, &$article, &$params, $limitstart)
 	{
@@ -57,24 +60,21 @@ class plgContentBfaccordion extends JPlugin
 			$sliders[$accordionLabel] = trim(substr($accordionText, $sliderLabelEnd+1));
 		}
 
+		if (empty($sliders)) return;
+
+		$thisAccordionName = self::ACCORDIONPREFIX . (self::$accordionid++);
+		$sliderPrefix = self::ACCORDIONPREFIX . $article->id . '-slider-';
+
 		$accordionOptions = array();
 		if (count($sliders) == 1)
 		{
-			$active = 'bfaccordion-slider-' . self::$sliderid;
+			$active = $sliderPrefix . self::$sliderid;
 		}
 		else {
-			$active = '';
-			$accordionSliderActive = JFactory::getApplication()->input->getVar('accordionslideractive');
-			if (!empty($accordionSliderActive))
+			$active = JFactory::getApplication()->input->getVar('sliderid', null);
+			if (!preg_match('/^' . $sliderPrefix . '[0-9]+$/', $active))
 			{
-				if (@sscanf($accordionSliderActive, '%d,%d', $accordionid, $sliderid) == 2)
-				{
-					if ($accordionid == self::$accordionid &&
-						$sliderid >= 0 && $sliderid < count($sliders))
-					{
-						$active = 'bfaccordion-slider-' . (self::$sliderid + $sliderid);
-					}
-				}
+				$active = '';
 			}
 		}
 		if (!empty($active))
@@ -82,12 +82,14 @@ class plgContentBfaccordion extends JPlugin
 			$accordionOptions['active'] = $active;
 		}
 		$accordionOptions['toggle'] = true;
-		$thisAccordionName = 'bfaccordion-' . (self::$accordionid++);
 
+		self::$sliderNameList = array();
 		$accordion = JHtml::_('bootstrap.startAccordion', $thisAccordionName, $accordionOptions);
 		foreach($sliders as $label=>$content)
 		{
-			$accordion .= JHtml::_('bootstrap.addSlide', $thisAccordionName, $label, 'bfaccordion-slider-' . (self::$accordionid++));
+			$thisSliderName = $sliderPrefix . (self::$sliderid++);
+			self::$sliderNameList[] = $thisSliderName;
+			$accordion .= JHtml::_('bootstrap.addSlide', $thisAccordionName, $label, $thisSliderName);
 			$accordion .= $content;
 			$accordion .= JHtml::_('bootstrap.endSlide');
 		}
@@ -96,6 +98,16 @@ class plgContentBfaccordion extends JPlugin
 		$article->text = substr($article->text, 0, $accordionStart) .
 			$accordion .
 			substr($article->text, $accordionEnd);
+
+		JFactory::getDocument()->addScriptDeclaration('
+jQuery( document ).ready(function() {
+	var hash = location.hash;
+	if (hash) {
+		var $a = jQuery(hash);
+		if ($a.length) $a.collapse("show");
+	}
+});
+');
 
 		$doc = JFactory::getDocument();
 		if($this->params->get('cssmode'))
@@ -116,6 +128,36 @@ class plgContentBfaccordion extends JPlugin
 		}
 
 		return;
+	}
+
+	/**
+	 * Listener for the `onAfterRender` event
+	 *
+	 * @return  void
+	 *
+	 * @since   1.0
+	 */
+	public function onAfterRender()
+	{
+		$documentbody = JResponse::getBody();
+
+		$documentbody = preg_replace_callback(
+			'@/(' . self::ACCORDIONPREFIX . '[0-9]+-slider-[0-9]+)"@',
+			function ($matches) {
+				if (!empty(self::$sliderNameList) && in_array($matches[1], self::$sliderNameList))
+				{
+					return '#' . $matches[1] . '" onclick=\'
+var $a = jQuery("#' . $matches[1] . '");
+if ($a.length) $a.collapse("show");
+return false;					
+\'';
+				}
+				return '#' . $matches[1] . '"';
+			},
+			$documentbody
+		);
+
+		JResponse::setBody($documentbody);
 	}
 }
 ?>
