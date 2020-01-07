@@ -65,19 +65,15 @@ class plgContentBfaccordion extends JPlugin
 		$thisAccordionName = self::ACCORDIONPREFIX . (self::$accordionid++);
 		$sliderPrefix = self::ACCORDIONPREFIX . $article->id . '-slider-';
 
-		$accordionOptions = array();
-		if (count($sliders) == 1)
+		$active = JFactory::getApplication()->input->getVar('sliderid', null);
+		if (!preg_match('/^' . $sliderPrefix . '[0-9]+$/', $active))
 		{
-			$active = $sliderPrefix . self::$sliderid;
+			sscanf($accordionText, self::ACCORDIONSTART . '%d', $initialSliderid);
+			$active = ($initialSliderid === null) ? null : $sliderPrefix . $initialSliderid;
 		}
-		else {
-			$active = JFactory::getApplication()->input->getVar('sliderid', null);
-			if (!preg_match('/^' . $sliderPrefix . '[0-9]+$/', $active))
-			{
-				$active = '';
-			}
-		}
-		if (!empty($active))
+
+		$accordionOptions = array();
+		if ($active !== null)
 		{
 			$accordionOptions['active'] = $active;
 		}

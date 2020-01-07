@@ -5,14 +5,15 @@
   <author>Jonathan Brain</author>
   <authorEmail>brainforge@btinternet.com</authorEmail>
   <authorUrl>http://www.brainforge.co.uk</authorUrl>
-  <copyright>Copyright 2018 Jonathan Brain. All rights reserved.</copyright>
+  <copyright>Copyright 2018-2020 Jonathan Brain. All rights reserved.</copyright>
   <license>GNU General Public License version 2 or later; see LICENSE.txt</license>
-  <version>3.8.13</version>
+  <version>3.9.14</version>
 
 	<description>PLG_CONTENT_BFACCORDION_XML_DESCRIPTION</description>
 
 	<files>
 		<filename plugin="bfaccordion">bfaccordion.php</filename>
+        <folder>help</folder>
 	</files>
 
 	<languages>
@@ -43,7 +44,7 @@
                         filter="raw"
                         rows="10"
                         cols="20"
-                        default="">
+                        default="PLG_CONTENT_BFACCORDION_CSSCUSTOM_DEFAULT">
                 </field>
             </fieldset>
 
@@ -55,7 +56,8 @@
 
                 <field
                         name="jsmode" type="radio" class="btn-group"
-                        label="PLG_CONTENT_BFACCORDION_JSMODE_LABEL" default="0">
+                        label="PLG_CONTENT_BFACCORDION_JSMODE_LABEL"
+                        default="1">
                     <option value="0">JOFF</option>
                     <option value="1">JON</option>
                 </field>
